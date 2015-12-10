@@ -24,8 +24,15 @@ describe 'CheckGmail' => sub {
         is_deeply($message, { id => '2', body => 'body' });
     };
 
-    xit 'should write a message to the email dir' => sub {
-        $gmail->save_email;
+    it 'should write the message to the email dir' => sub {
+        my $file = $gmail->save_email(subject => 'Welcome to Sharecare');
+        ok(-e $file);
+
+        open (my $fh, '<', $file);
+        my (@file) = <$fh>;
+        close ($fh);
+
+        is_deeply(\@file, [ 'body']);
     };
 
 };

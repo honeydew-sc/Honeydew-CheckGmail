@@ -124,8 +124,15 @@ C<get_email>, if no email is found, this will croak.
 sub save_email {
     my ($self, %search) = @_;
 
-    my $message = $self->get_message(%search);
+    my $message = $self->get_email(%search);
+    my $dir = $self->emaildir;
 
+    my $filename = $self->emaildir . '/' . time;
+    open (my $fh, '>', $filename);
+    print $fh $message->{body};
+    close ($fh);
+
+    return $filename;
 }
 
 1;
