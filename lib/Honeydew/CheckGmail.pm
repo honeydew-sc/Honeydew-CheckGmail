@@ -4,6 +4,7 @@ package Honeydew::CheckGmail;
 use strict;
 use warnings;
 use feature qw/say/;
+use Carp qw/croak/;
 use Honeydew::Config;
 use Moo;
 use Net::IMAP::Client;
@@ -102,7 +103,7 @@ sub get_email {
         };
     }
     else {
-        die 'No messages were found for this search criteria';
+        croak 'No messages were found for this search criteria';
     }
 }
 
