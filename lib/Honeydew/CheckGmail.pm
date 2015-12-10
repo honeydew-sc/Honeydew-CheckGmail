@@ -20,7 +20,7 @@ use Net::IMAP::Client;
 
 =cut
 
-has _user => (
+has user => (
     is => 'lazy',
     default => sub {
         my ($self) = @_;
@@ -28,7 +28,7 @@ has _user => (
     }
 );
 
-has _password => (
+has password => (
     is => 'lazy',
     default => sub {
         my ($self) = @_;
@@ -36,10 +36,18 @@ has _password => (
     }
 );
 
-has _config => (
+has config => (
     is => 'lazy',
     default => sub {
         return Honeydew::Config->instance;
+    }
+);
+
+has emaildir => (
+    is => 'lazy',
+    default => sub {
+        my ($self) = @_;
+        return $self->config->{honeydew}->{emailsdir};
     }
 );
 
