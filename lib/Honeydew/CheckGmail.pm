@@ -69,14 +69,24 @@ has _imap => (
     }
 );
 
-has _emaildir => (
-    is => 'lazy',
-    default => sub {
-        my ($self) = @_;
-        return $self->config->{honeydew}->{emaildir};
-    }
-);
+=method get_email(%search)
 
+Search for the most recent email with a hash of search criteria. For
+example, to search for an email with subject C<foo> from C<sender>,
+you could do
+
+    $gmail->get_email(subject => 'foo', from => 'sender');
+
+We'll return a hashref with the message id and the body of the email:
+
+    {
+        id => $message_id,
+        body => $html_rfc822_body
+    }
+
+If no messages are found, this will croak.
+
+=cut
 
 sub get_email {
     my ($self, %search) = @_;
@@ -95,6 +105,20 @@ sub get_email {
         die 'No messages were found for this search criteria';
     }
 }
+
+=method save_email(%search)
+
+Write the body of an email to a local directory for subsequent viewing
+in a browser. Specify the search criteria the same way as in
+C<get_email>:
+
+    $gmail->save_email(subject => 'foo', from => 'sender');
+
+If an email is found, its HTML body will be written to a file in the
+L</emaildir>; that file path will be returned to you. As with
+C<get_email>, if no email is found, this will croak.
+
+=cut
 
 sub save_email {
     my ($self, %search) = @_;
