@@ -102,8 +102,8 @@ has _imap => (
         my ($self) = @_;
         my $imap = Net::IMAP::Client->new(
             server => 'imap.gmail.com',
-            user   => $self->_user,
-            pass   => $self->_password,
+            user   => $self->user,
+            pass   => $self->password,
             ssl    => 1,
             port   => 993
         );
