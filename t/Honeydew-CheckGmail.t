@@ -38,19 +38,32 @@ describe 'CheckGmail' => sub {
         is_deeply(\@file, [ 'body']);
     };
 
+    it 'should reject an old message' => sub {
+        my $summary = mock();
+        $summary->expects('internaldate')
+          ->returns('10-Dec-2015 14:34:44 +0000');
+
+        $mockimap->expects('get_summaries')
+          ->with('1')
+          ->returns([ $summary ]);
+
+        my $is_new = $gmail->_is_message_new({ id => '1' });
+        ok(! $is_new);
+    };
+
+    it 'should accept a new message' => sub {
+        my $now = now->to_tz('+0000')->strftime('%d-%b-%G %H:%M:%S %z');
+        my $summary = mock();
+        $summary->expects('internaldate')
+          ->returns($now);
+
+        $mockimap->expects('get_summaries')
+          ->with('1')
+          ->returns([ $summary ]);
+
+        my $is_new = $gmail->_is_message_new({ id => '1' });
+        ok($is_new);
+    };
 };
-
-sub mock_imap {
-    my ($mockimap) = @_;
-
-    $mockimap->expects('search')
-      ->returns(['1', '2']);
-
-    $mockimap->expects('get_rfc822_body')
-      ->with('2')
-      ->returns('body');
-
-    return $mockimap;
-}
 
 runtests;

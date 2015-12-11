@@ -5,9 +5,12 @@ use strict;
 use warnings;
 use feature qw/say/;
 use Carp qw/croak/;
+use Try::Tiny;
 use Honeydew::Config;
 use Moo;
 use Net::IMAP::Client;
+use Class::Date qw(now);
+use Selenium::Waiter;
 
 =for markdown [![Build Status](https://travis-ci.org/honeydew-sc/Honeydew-CheckGmail.svg?branch=master)](https://travis-ci.org/honeydew-sc/Honeydew-CheckGmail)
 
@@ -96,6 +99,18 @@ has emaildir => (
     }
 );
 
+=attr new_email_timeout
+
+Specify how long you want to query a gmail inbox for a new
+message. See L</get_new_email> for more information.
+
+=cut
+
+has new_email_timeout => (
+    is => 'lazy',
+    default => 60
+);
+
 has _imap => (
     is => 'lazy',
     default => sub {
@@ -176,6 +191,55 @@ sub save_email {
     close ($fh);
 
     return $filename;
+}
+
+=method get_new_email(%search)
+
+This smarter version of L</get_email> will only return a message if it
+is new enough. It will compare the current time with the date of the
+message found, and if the message is too old, we'll sleep a few
+seconds before querying the inbox again.
+
+The input arguments are the same as in L</get_email> - a hash of
+search criteria. If we find a message, the output will be a hashref
+with the message id and the body of the email. This can be passed to
+L</save_email>. If no message is found, the output will be falsy.
+
+This subroutine can block as long as L</new_email_timeout>; please
+tweak to your liking.
+
+=cut
+
+sub get_new_email {
+    my ($self, %search) = @_;
+
+    my %wait_args = (
+        timeout => $self->new_email_timeout,
+        interval => 3
+    );
+
+    return wait_until {
+        my $message = $self->get_email(%search);
+        if ($self->_is_message_new($message)) {
+            return $message;
+        }
+    } %wait_args;
+}
+
+sub _is_message_new {
+    my ($self, $message) = @_;
+
+    my $summary = $self->_imap->get_summaries($message->{id})->[0];
+    my $new_msg_cutoff = $self->_one_minute_ago;
+
+    return $summary->internaldate gt $new_msg_cutoff;
+}
+
+sub _one_minute_ago {
+    my $now = now->to_tz('+0000');
+    my $one_minute_ago = $now - '60s';
+
+    return $one_minute_ago->strftime('%d-%b-%G %H:%M:%S %z');
 }
 
 1;
