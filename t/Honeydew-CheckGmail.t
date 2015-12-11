@@ -25,7 +25,7 @@ describe 'CheckGmail' => sub {
     };
 
     it 'should write the message to the email dir' => sub {
-        my $file = $gmail->save_email(subject => 'Welcome to Sharecare');
+        my $file = $gmail->save_email({body => 'body'});
         ok(-e $file);
 
         open (my $fh, '<', $file);

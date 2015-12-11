@@ -151,27 +151,26 @@ sub get_email {
     }
 }
 
-=method save_email(%search)
+=method save_email($message)
 
 Write the body of an email to a local directory for subsequent viewing
-in a browser. Specify the search criteria the same way as in
-C<get_email>:
+in a browser. Get your email message either with L</get_email> or
+L</get_new_email>, and then pass the result of either of those
+function calls to this method. As argument, we expect a hashref with
+key C<body>, which we will write to a file.
 
-    $gmail->save_email(subject => 'foo', from => 'sender');
-
-If an email is found, its HTML body will be written to a file in the
-L</emaildir>; that file path will be returned to you. As with
-C<get_email>, if no email is found, this will croak.
+    my $message = { body => 'some html' };
+    my $file = $gmail->save_email($message);
+    `cat $file`; # "some html"
 
 =cut
 
 sub save_email {
-    my ($self, %search) = @_;
+    my ($self, $message) = @_;
+    die 'Please provide a hashref with key "body"'
+      unless exists $message->{body};
 
-    my $message = $self->get_email(%search);
-    my $dir = $self->emaildir;
-
-    my $filename = $self->emaildir . '/' . time;
+    my $filename = $self->emaildir . '/' . time . '.html';
     open (my $fh, '>', $filename);
     print $fh $message->{body};
     close ($fh);
