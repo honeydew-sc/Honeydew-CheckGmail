@@ -19,6 +19,18 @@ use Net::IMAP::Client;
 
 =head1 DESCRIPTION
 
+Honeydew::CheckGmail is a convenience wrapper that takes care of
+finding the newest email and saving it to a file such that we can view
+it locally. With no arguments, the constructor will look up
+credentials for a Gmail account in the config attribute.
+
+=cut
+
+=attr user
+
+Specify the short part of the Gmail account login - for example, if
+the email is C<something@gmail.com>, we just want C<something>.
+
 =cut
 
 has user => (
@@ -29,6 +41,12 @@ has user => (
     }
 );
 
+=attr password
+
+Specify the password for the gmail account
+
+=cut
+
 has password => (
     is => 'lazy',
     default => sub {
@@ -37,12 +55,38 @@ has password => (
     }
 );
 
+=attr config
+
+Specify a config instance. If not provided, L</user> and L</password>
+will be looked up in this hash like such:
+
+    my $config = {
+        gmail => { user => 'user', password => 'password' }
+    };
+    my $gmail = Honeydew::CheckGmail->new(config => $config);
+
+That would do the same thing as
+
+    my $gmail = Honeydew::CheckGmail->new(
+        user => 'user',
+        password => 'password'
+    );
+
+=cut
+
 has config => (
     is => 'lazy',
     default => sub {
         return Honeydew::Config->instance;
     }
 );
+
+=attr emaildir
+
+Specify what directory L</save_email> should write files to. Do not
+provide the trailing slash.
+
+=cut
 
 has emaildir => (
     is => 'lazy',
