@@ -38,32 +38,62 @@ describe 'CheckGmail' => sub {
         is_deeply(\@file, [ 'body']);
     };
 
-    it 'should reject an old message' => sub {
-        my $summary = mock();
-        $summary->expects('internaldate')
-          ->returns('10-Dec-2015 14:34:44 +0000');
+    describe 'message recency' => sub {
+        my ($now, $summary);
+        before each => sub {
+            $now = now->to_tz('+0000');
+            $summary = mock();
+        };
 
-        $mockimap->expects('get_summaries')
-          ->with('1')
-          ->returns([ $summary ]);
+        it 'should reject a very old message' => sub {
+            my $summary = mock();
+            mock_message_internaldate('10-Dec-2015 14:34:44 +0000', $summary, $mockimap);
 
-        my $is_new = $gmail->_is_message_new({ id => '1' });
-        ok(! $is_new);
+            my $is_new = $gmail->is_message_new({ id => '1' });
+            ok(! $is_new);
+        };
+
+        it 'should reject a message just past the msg_delay' => sub {
+            my $too_old = $now - '121s';
+            mock_message_internaldate($too_old->strftime('%d-%b-%G %H:%M:%S %z'), $summary, $mockimap);
+
+            my $is_new = $gmail->is_message_new({ id => '1' });
+            ok(! $is_new);
+        };
+
+        it 'should accept a new message' => sub {
+            my $now = now->to_tz('+0000')->strftime('%d-%b-%G %H:%M:%S %z');
+            mock_message_internaldate($now, $summary, $mockimap);
+
+            my $is_new = $gmail->is_message_new({ id => '1' });
+            ok($is_new);
+        };
+
+        it 'should accept a new message just under the msg_delay' => sub {
+            my $now = now->to_tz('+0000');
+            my $almost_two_minutes_old = $now - '119s';
+            my $still_new = $almost_two_minutes_old->strftime('%d-%b-%G %H:%M:%S %z');
+
+            mock_message_internaldate($still_new, $summary, $mockimap);
+
+            my $is_new = $gmail->is_message_new({ id => '1' });
+            ok($is_new);
+        };
+
+        sub mock_message_internaldate {
+            my ($return_date, $summary, $mockimap) = @_;
+
+            $summary->expects('internaldate')
+              ->returns($return_date);
+
+            $mockimap->expects('get_summaries')
+              ->with('1')
+              ->returns([ $summary ]);
+        }
+
     };
 
-    it 'should accept a new message' => sub {
-        my $now = now->to_tz('+0000')->strftime('%d-%b-%G %H:%M:%S %z');
-        my $summary = mock();
-        $summary->expects('internaldate')
-          ->returns($now);
 
-        $mockimap->expects('get_summaries')
-          ->with('1')
-          ->returns([ $summary ]);
-
-        my $is_new = $gmail->_is_message_new({ id => '1' });
-        ok($is_new);
-    };
 };
 
 runtests;

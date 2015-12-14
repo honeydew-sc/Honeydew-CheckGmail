@@ -98,12 +98,22 @@ has emaildir => (
     }
 );
 
+=attr msg_delay
 
 Specify how recently an email must have arrived to be considered
+new. Defaults to C<120> seconds - that is, if an email's internal date
+is less than two minutes old, we'll accept it as the new message that
+you are waiting for.
+
+    my $gmail = Honeydew::CheckGmail->new(
+        msg_delay => 300 # a five minute old message is fine
+    );
 
 =cut
 
+has msg_delay => (
     is => 'lazy',
+    default => 120
 );
 
 has _imap => (
@@ -192,20 +202,27 @@ sub save_email {
     return $filename;
 }
 
-sub _is_message_new {
+sub is_message_new {
     my ($self, $message) = @_;
 
     my $summary = $self->_imap->get_summaries($message->{id})->[0];
-    my $new_msg_cutoff = $self->_one_minute_ago;
+    my $new_msg_cutoff = $self->_new_msg_cutoff;
 
     return $summary->internaldate gt $new_msg_cutoff;
 }
 
-sub _one_minute_ago {
-    my $now = now->to_tz('+0000');
-    my $one_minute_ago = $now - '60s';
+sub _new_msg_cutoff {
+    my ($self) = @_;
 
-    return $one_minute_ago->strftime('%d-%b-%G %H:%M:%S %z');
+    my $now = now->to_tz('+0000');
+
+    # the Class::Date module can do math like "$time - 60s" to
+    # subtract a minute; appending an 's' turns msg_delay into
+    # seconds.
+    my $delay = $self->msg_delay . 's';
+    my $new_msg_cutoff = $now - $delay;
+
+    return $new_msg_cutoff->strftime('%d-%b-%G %H:%M:%S %z');
 }
 
 1;
