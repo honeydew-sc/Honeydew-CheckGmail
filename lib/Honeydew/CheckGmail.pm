@@ -39,7 +39,7 @@ has user => (
     is => 'lazy',
     default => sub {
         my ($self) = @_;
-        return $self->config->{gmail}->{username};
+        return $self->config->{gmail}->{user};
     }
 );
 
@@ -94,7 +94,7 @@ has emaildir => (
     is => 'lazy',
     default => sub {
         my ($self) = @_;
-        return $self->config->{honeydew}->{emailsdir};
+        return $self->config->{honeydew}->{emailsdir} // '/tmp';
     }
 );
 
