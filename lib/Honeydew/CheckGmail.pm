@@ -10,7 +10,6 @@ use Honeydew::Config;
 use Moo;
 use Net::IMAP::Client;
 use Class::Date qw(now);
-use Selenium::Waiter;
 
 =for markdown [![Build Status](https://travis-ci.org/honeydew-sc/Honeydew-CheckGmail.svg?branch=master)](https://travis-ci.org/honeydew-sc/Honeydew-CheckGmail)
 
@@ -99,16 +98,12 @@ has emaildir => (
     }
 );
 
-=attr new_email_timeout
 
-Specify how long you want to query a gmail inbox for a new
-message. See L</get_new_email> for more information.
+Specify how recently an email must have arrived to be considered
 
 =cut
 
-has new_email_timeout => (
     is => 'lazy',
-    default => 60
 );
 
 has _imap => (
@@ -191,39 +186,6 @@ sub save_email {
     close ($fh);
 
     return $filename;
-}
-
-=method get_new_email(%search)
-
-This smarter version of L</get_email> will only return a message if it
-is new enough. It will compare the current time with the date of the
-message found, and if the message is too old, we'll sleep a few
-seconds before querying the inbox again.
-
-The input arguments are the same as in L</get_email> - a hash of
-search criteria. If we find a message, the output will be a hashref
-with the message id and the body of the email. This can be passed to
-L</save_email>. If no message is found, the output will be falsy.
-
-This subroutine can block as long as L</new_email_timeout>; please
-tweak to your liking.
-
-=cut
-
-sub get_new_email {
-    my ($self, %search) = @_;
-
-    my %wait_args = (
-        timeout => $self->new_email_timeout,
-        interval => 3
-    );
-
-    return wait_until {
-        my $message = $self->get_email(%search);
-        if ($self->_is_message_new($message)) {
-            return $message;
-        }
-    } %wait_args;
 }
 
 sub _is_message_new {
