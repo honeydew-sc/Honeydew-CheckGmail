@@ -147,9 +147,13 @@ sub get_email {
     my ($self, %search) = @_;
 
     my $msg_ids = $self->_imap->search(\%search);
-    if (scalar @$msg_ids) {
+    if ($msg_ids && scalar @$msg_ids) {
         my $newest_msg_id = (reverse @{ $msg_ids })[0];
-        my $body = $self->_imap->get_rfc822_body($newest_msg_id);
+
+        # uh, get_rfc822_body returns a reference to a scalar for the
+        # body, so we need to dereference it...
+        my $body_ref = $self->_imap->get_rfc822_body($newest_msg_id);
+        my $body = $$body_ref;
 
         return {
             id => $newest_msg_id,

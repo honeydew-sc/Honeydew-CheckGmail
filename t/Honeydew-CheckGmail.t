@@ -21,7 +21,7 @@ describe 'CheckGmail' => sub {
 
         $mockimap->expects('get_rfc822_body')
           ->with('2')
-          ->returns('body');
+          ->returns(\'body');
 
         my $message = $gmail->get_email(subject => 'Welcome to Sharecare');
         is_deeply($message, { id => '2', body => 'body' });
