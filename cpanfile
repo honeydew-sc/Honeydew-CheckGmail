@@ -3,8 +3,6 @@ requires "Class::Date" => "0";
 requires "Honeydew::Config" => "0";
 requires "Moo" => "0";
 requires "Net::IMAP::Client" => "0";
-requires "Try::Tiny" => "0";
-requires "feature" => "0";
 requires "strict" => "0";
 requires "warnings" => "0";
 
