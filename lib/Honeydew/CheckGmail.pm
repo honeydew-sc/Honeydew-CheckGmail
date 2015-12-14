@@ -1,6 +1,6 @@
 package Honeydew::CheckGmail;
 
-# ABSTRACT:
+# ABSTRACT: Get and save new emails from Gmail
 use strict;
 use warnings;
 use feature qw/say/;
