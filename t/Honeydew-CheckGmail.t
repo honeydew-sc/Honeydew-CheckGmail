@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Honeydew::CheckGmail;
 use Test::Spec;
+use Test::Fatal;
 use Class::Date qw/now/;
 use File::Temp qw/tempdir/;
 
@@ -15,17 +16,63 @@ describe 'CheckGmail' => sub {
         );
     };
 
-    it 'should get emails from the inbox' => sub {
-        $mockimap->expects('search')
-          ->returns(['1', '2']);
+    describe 'unread retrieval' => sub {
+        before each => sub {
+            $mockimap->expects('search')
+              ->returns(['1', '2']);
+        };
 
-        $mockimap->expects('get_rfc822_body')
-          ->with('2')
-          ->returns(\'body');
+        it 'should get emails from the inbox' => sub {
+            $mockimap->expects('get_summaries')
+              ->with_deep(['2', '1'])
+              ->returns([{
+                  flags => [  ],
+                  uid => '1'
+              }, {
+                  flags => [ '\Seen' ],
+                  uid => '2'
+              }]);
 
-        my $message = $gmail->get_email(subject => 'Welcome to Sharecare');
-        is_deeply($message, { id => '2', body => 'body' });
+            $mockimap->expects('get_rfc822_body')
+              ->with('1')
+              ->returns(\'body');
+
+            my $message = $gmail->get_email(subject => 'Welcome to Sharecare');
+            is_deeply($message, { id => '1', body => 'body' });
+        };
+
+        it 'should throw when all emails are seen' => sub {
+            $mockimap->expects('get_summaries')
+              ->with_deep(['2', '1'])
+              ->returns([{flags => [ '\Seen' ], uid => '1'}, ]);
+
+            $mockimap->expects('get_rfc822_body')->never;
+
+            ok(exception { $gmail->get_email(subject => 'Welcome to Sharecare') });
+        };
+
+        it 'should return the newest unread message' => sub {
+            $mockimap->expects('get_summaries')
+              ->with_deep(['2', '1'])
+              ->returns([{
+                  flags => [ ],
+                  uid => '1'
+              }, {
+                  flags => [],
+                  uid => '2'
+              }]);
+
+            $mockimap->expects('get_rfc822_body')
+              ->with('2')
+              ->returns(\'body');
+
+            my $message = $gmail->get_email(subject => 'Welcome to Sharecare');
+            is_deeply($message, { id => '2', body => 'body' });
+
+        };
+
     };
+
 
     it 'should write the message to the email dir' => sub {
         my $file = $gmail->save_email({body => 'body'});
@@ -92,8 +139,6 @@ describe 'CheckGmail' => sub {
         }
 
     };
-
-
 };
 
 runtests;

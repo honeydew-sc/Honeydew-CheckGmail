@@ -4,6 +4,7 @@ package Honeydew::CheckGmail;
 use strict;
 use warnings;
 use Carp qw/croak/;
+use List::Util qw/none/;
 use Honeydew::Config;
 use Moo;
 use Net::IMAP::Client;
@@ -155,22 +156,52 @@ sub get_email {
     my ($self, %search) = @_;
 
     my $msg_ids = $self->_imap->search(\%search);
+    my $newest_unseen_id = $self->_find_newest_unseen($msg_ids);
+
+    # uh, get_rfc822_body returns a reference to a scalar for the
+    # body, so we need to dereference it. Also, this marks the message
+    # as "SEEN".
+    my $body_ref = $self->_imap->get_rfc822_body($newest_unseen_id);
+    my $body = $$body_ref;
+
+    return {
+        id => $newest_unseen_id,
+        body => $body
+    };
+}
+
+sub _find_newest_unseen {
+    my ($self, $msg_ids) = @_;
+
     if ($msg_ids && scalar @$msg_ids) {
-        my $newest_msg_id = (reverse @{ $msg_ids })[0];
+        # The IDs are ordered oldest first
+        my @ids_newest_first = reverse @$msg_ids;
 
-        # uh, get_rfc822_body returns a reference to a scalar for the
-        # body, so we need to dereference it...
-        my $body_ref = $self->_imap->get_rfc822_body($newest_msg_id);
-        my $body = $$body_ref;
+        # There may be a _lot_ of matching emails; we only need to check a
+        # few of them
+        my @ids_newest_truncated = splice( @ids_newest_first, 0, 5);
+        my $summaries = $self->_imap->get_summaries(\@ids_newest_truncated);
 
-        return {
-            id => $newest_msg_id,
-            body => $body
-        };
+        # the summaries come back oldest first
+        my @summaries_newest_first = reverse @$summaries;
+
+        foreach (@summaries_newest_first) {
+            if ($self->_is_unseen($_)) {
+                return $_->{uid};
+            }
+        }
+
+        croak 'We found messages, but they were all already SEEN/READ.';
     }
     else {
-        croak 'No messages were found for this search criteria';
+        croak 'No unseen messages were found for this search criteria';
     }
+}
+
+sub _is_unseen {
+    my ($self, $summary) = @_;
+
+    return none { $_ eq '\Seen' } @{ $summary->{flags} };
 }
 
 =method save_email($message)
