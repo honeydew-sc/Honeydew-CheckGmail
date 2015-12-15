@@ -178,20 +178,22 @@ sub get_email {
 sub _get_newest_unseen_id {
     my ($self, $msg_ids) = @_;
 
-    if ($msg_ids && scalar @$msg_ids) {
-        # The IDs are ordered oldest first
-        my $newest_msg_id = $msg_ids->[-1];
-        my $newest_msg_summary = $self->_imap->get_summaries($newest_msg_id)->[0];
-
-        if ($self->_is_unseen($newest_msg_summary)) {
-            return $newest_msg_summary->{uid};
-        }
-
-        croak 'We found a matching message, but it was already SEEN.';
-    }
-    else {
+    if ( !($msg_ids && scalar @$msg_ids) ) {
         croak 'No messages were found for this search criteria';
     }
+
+    # The IDs are ordered oldest first, so the most recent message
+    # is in the last position
+    my $newest_msg_id = $msg_ids->[-1];
+    my $newest_msg_summary = $self->_imap->get_summaries($newest_msg_id)->[0];
+
+    if ($self->_is_unseen($newest_msg_summary)) {
+        return $newest_msg_summary->{uid};
+    }
+    else {
+        croak 'We found a matching message, but it was already SEEN.';
+    }
+
 }
 
 sub _is_unseen {
