@@ -120,11 +120,12 @@ has _imap => (
     default => sub {
         my ($self) = @_;
         my $imap = Net::IMAP::Client->new(
-            server => 'imap.gmail.com',
-            user   => $self->user,
-            pass   => $self->password,
-            ssl    => 1,
-            port   => 993
+            server          => 'imap.gmail.com',
+            user            => $self->user,
+            pass            => $self->password,
+            ssl             => 1,
+            ssl_verify_peer => 0,
+            port            => 993
         );
         $imap->login;
         $imap->select('INBOX');
