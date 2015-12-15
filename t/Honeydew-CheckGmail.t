@@ -113,19 +113,18 @@ describe 'CheckGmail' => sub {
             my $is_new = $gmail->is_message_new({ id => '1' });
             ok($is_new);
         };
-
-        sub mock_message_internaldate {
-            my ($return_date, $summary, $mockimap) = @_;
-
-            $summary->expects('internaldate')
-              ->returns($return_date);
-
-            $mockimap->expects('get_summaries')
-              ->with('1')
-              ->returns([ $summary ]);
-        }
-
     };
+
+    sub mock_message_internaldate {
+        my ($return_date, $summary, $mockimap) = @_;
+
+        $summary->expects('internaldate')
+          ->returns($return_date);
+
+        $mockimap->expects('get_summaries')
+          ->with('1')
+          ->returns([ $summary ]);
+    }
 };
 
 runtests;
