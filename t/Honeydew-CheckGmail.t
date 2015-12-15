@@ -17,60 +17,39 @@ describe 'CheckGmail' => sub {
     };
 
     describe 'unread retrieval' => sub {
+        my ($unseen_msg_id);
         before each => sub {
+            $unseen_msg_id = '2';
             $mockimap->expects('search')
-              ->returns(['1', '2']);
+              ->returns(['1', $unseen_msg_id]);
         };
 
         it 'should get emails from the inbox' => sub {
             $mockimap->expects('get_summaries')
-              ->with_deep(['2', '1'])
+              ->with_deep($unseen_msg_id)
               ->returns([{
-                  flags => [  ],
-                  uid => '1'
-              }, {
-                  flags => [ '\Seen' ],
-                  uid => '2'
+                  flags => [ ],
+                  uid => $unseen_msg_id
               }]);
 
             $mockimap->expects('get_rfc822_body')
-              ->with('1')
+              ->with($unseen_msg_id)
               ->returns(\'body');
 
             my $message = $gmail->get_email(subject => 'Welcome to Sharecare');
-            is_deeply($message, { id => '1', body => 'body' });
+            is_deeply($message, { id => $unseen_msg_id, body => 'body' });
         };
 
-        it 'should throw when all emails are seen' => sub {
+        it 'should throw when the most recent email is seen' => sub {
             $mockimap->expects('get_summaries')
-              ->with_deep(['2', '1'])
-              ->returns([{flags => [ '\Seen' ], uid => '1'}, ]);
+              ->with_deep($unseen_msg_id)
+              ->returns([{flags => [ '\Seen' ], uid => $unseen_msg_id}, ]);
 
             $mockimap->expects('get_rfc822_body')->never;
 
-            ok(exception { $gmail->get_email(subject => 'Welcome to Sharecare') });
+            like(exception { $gmail->get_email(subject => 'Welcome to Sharecare') },
+                 qr/already SEEN/);
         };
-
-        it 'should return the newest unread message' => sub {
-            $mockimap->expects('get_summaries')
-              ->with_deep(['2', '1'])
-              ->returns([{
-                  flags => [ ],
-                  uid => '1'
-              }, {
-                  flags => [],
-                  uid => '2'
-              }]);
-
-            $mockimap->expects('get_rfc822_body')
-              ->with('2')
-              ->returns(\'body');
-
-            my $message = $gmail->get_email(subject => 'Welcome to Sharecare');
-            is_deeply($message, { id => '2', body => 'body' });
-
-        };
-
     };
 
 

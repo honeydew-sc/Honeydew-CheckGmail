@@ -156,11 +156,10 @@ sub get_email {
     my ($self, %search) = @_;
 
     my $msg_ids = $self->_imap->search(\%search);
-    my $newest_unseen_id = $self->_find_newest_unseen($msg_ids);
+    my $newest_unseen_id = $self->_get_newest_unseen_id($msg_ids);
 
-    # uh, get_rfc822_body returns a reference to a scalar for the
-    # body, so we need to dereference it. Also, this marks the message
-    # as "SEEN".
+    # get_rfc822_body returns a scalar reference for the body, so we
+    # need to dereference it. Also, this marks the message as "SEEN".
     my $body_ref = $self->_imap->get_rfc822_body($newest_unseen_id);
     my $body = $$body_ref;
 
@@ -170,31 +169,22 @@ sub get_email {
     };
 }
 
-sub _find_newest_unseen {
+sub _get_newest_unseen_id {
     my ($self, $msg_ids) = @_;
 
     if ($msg_ids && scalar @$msg_ids) {
         # The IDs are ordered oldest first
-        my @ids_newest_first = reverse @$msg_ids;
+        my $newest_msg_id = $msg_ids->[-1];
+        my $newest_msg_summary = $self->_imap->get_summaries($newest_msg_id)->[0];
 
-        # There may be a _lot_ of matching emails; we only need to check a
-        # few of them
-        my @ids_newest_truncated = splice( @ids_newest_first, 0, 5);
-        my $summaries = $self->_imap->get_summaries(\@ids_newest_truncated);
-
-        # the summaries come back oldest first
-        my @summaries_newest_first = reverse @$summaries;
-
-        foreach (@summaries_newest_first) {
-            if ($self->_is_unseen($_)) {
-                return $_->{uid};
-            }
+        if ($self->_is_unseen($newest_msg_summary)) {
+            return $newest_msg_summary->{uid};
         }
 
-        croak 'We found messages, but they were all already SEEN/READ.';
+        croak 'We found a matching message, but it was already SEEN.';
     }
     else {
-        croak 'No unseen messages were found for this search criteria';
+        croak 'No messages were found for this search criteria';
     }
 }
 
