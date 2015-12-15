@@ -1,6 +1,7 @@
 requires "Carp" => "0";
 requires "Class::Date" => "0";
 requires "Honeydew::Config" => "0";
+requires "List::Util" => "0";
 requires "Moo" => "0";
 requires "Net::IMAP::Client" => "0";
 requires "strict" => "0";
@@ -8,6 +9,7 @@ requires "warnings" => "0";
 
 on 'test' => sub {
   requires "File::Temp" => "0";
+  requires "Test::Fatal" => "0";
   requires "Test::Spec" => "0";
 };
 
