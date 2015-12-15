@@ -12,7 +12,7 @@ describe 'CheckGmail' => sub {
         $mockimap = mock();
         $gmail = Honeydew::CheckGmail->new(
             _imap => $mockimap,
-            _emaildir => tempdir(CLEANUP => 1)
+            emaildir => tempdir(CLEANUP => 1)
         );
     };
 
