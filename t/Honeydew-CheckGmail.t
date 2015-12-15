@@ -50,6 +50,14 @@ describe 'CheckGmail' => sub {
             like(exception { $gmail->get_email(subject => 'Welcome to Sharecare') },
                  qr/already SEEN/);
         };
+
+    };
+
+    it 'should throw when no messages are found' => sub {
+        $mockimap->expects('search')->returns(undef);
+
+        like(exception { $gmail->get_email(subject => 'no results') },
+             qr/no messages/i);
     };
 
 
