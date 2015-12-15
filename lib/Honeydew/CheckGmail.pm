@@ -135,9 +135,9 @@ has _imap => (
 
 =method get_email(%search)
 
-Search for the most recent email with a hash of search criteria. For
-example, to search for an email with subject C<foo> from C<sender>,
-you could do
+Search the inbox with the provided criteria for the most recent
+message. For example, to search for an email with subject C<foo> from
+C<sender>, you could do
 
     $gmail->get_email(subject => 'foo', from => 'sender');
 
@@ -148,7 +148,13 @@ We'll return a hashref with the message id and the body of the email:
         body => $html_rfc822_body
     }
 
-If no messages are found, this will croak.
+This hashref can be passed to L</save_email> to write to a file if
+desired.
+
+N.B.: A message will only be returned to you if and only if the most
+recent message is unread. If the most recent message is already seen,
+this will croak. If no messages are found to match your criteria, this
+will croak.
 
 =cut
 
