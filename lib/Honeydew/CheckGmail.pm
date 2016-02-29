@@ -9,6 +9,7 @@ use Honeydew::Config;
 use Moo;
 use Net::IMAP::Client;
 use Class::Date qw(now);
+use File::Spec;
 
 =for markdown [![Build Status](https://travis-ci.org/honeydew-sc/Honeydew-CheckGmail.svg?branch=master)](https://travis-ci.org/honeydew-sc/Honeydew-CheckGmail)
 
@@ -222,7 +223,9 @@ sub save_email {
     die 'Please provide a hashref with key "body"'
       unless exists $message->{body};
 
-    my $filename = $self->emaildir . '/' . time . '.html';
+
+    my $name = time . '.html';
+    my $filename = File::Spec->catfile($self->emaildir, $name);
     open (my $fh, '>', $filename);
     print $fh $message->{body};
     close ($fh);

@@ -1,5 +1,6 @@
 requires "Carp" => "0";
 requires "Class::Date" => "0";
+requires "File::Spec" => "0";
 requires "Honeydew::Config" => "0";
 requires "List::Util" => "0";
 requires "Moo" => "0";
