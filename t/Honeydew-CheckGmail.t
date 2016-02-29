@@ -60,7 +60,6 @@ describe 'CheckGmail' => sub {
              qr/no messages/i);
     };
 
-
     it 'should write the message to the email dir' => sub {
         my $file = $gmail->save_email({body => 'body'});
         ok(-e $file);

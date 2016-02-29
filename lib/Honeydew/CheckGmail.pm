@@ -206,10 +206,10 @@ sub _is_unseen {
 =method save_email($message)
 
 Write the body of an email to a local directory for subsequent viewing
-in a browser. Get your email message either with L</get_email> or
-L</get_new_email>, and then pass the result of either of those
-function calls to this method. As argument, we expect a hashref with
-key C<body>, which we will write to a file.
+in a browser. Get your email message either with L</get_email>, and
+then pass the result of either of those function calls to this
+method. As argument, we expect a hashref with key C<body>, which we
+will write to a file.
 
     my $message = { body => 'some html' };
     my $file = $gmail->save_email($message);

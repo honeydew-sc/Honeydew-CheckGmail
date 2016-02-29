@@ -6,7 +6,7 @@ Honeydew::CheckGmail - Get and save new emails from Gmail
 
 # VERSION
 
-version 0.01
+version 0.02
 
 # SYNOPSIS
 
@@ -93,10 +93,10 @@ will croak.
 ## save\_email($message)
 
 Write the body of an email to a local directory for subsequent viewing
-in a browser. Get your email message either with ["get\_email"](#get_email) or
-["get\_new\_email"](#get_new_email), and then pass the result of either of those
-function calls to this method. As argument, we expect a hashref with
-key `body`, which we will write to a file.
+in a browser. Get your email message either with ["get\_email"](#get_email), and
+then pass the result of either of those function calls to this
+method. As argument, we expect a hashref with key `body`, which we
+will write to a file.
 
     my $message = { body => 'some html' };
     my $file = $gmail->save_email($message);
