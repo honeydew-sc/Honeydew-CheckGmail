@@ -92,6 +92,11 @@ provide the trailing slash.
 
 has emaildir => (
     is => 'lazy',
+    coerce => sub {
+        my ($dir) = @_;
+        $dir =~ s{/$}{};
+        return $dir;
+    },
     default => sub {
         my ($self) = @_;
         return $self->config->{honeydew}->{emailsdir} // '/tmp';
