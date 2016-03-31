@@ -133,7 +133,10 @@ has _imap => (
             ssl_verify_peer => 0,
             port            => 993
         );
-        $imap->login;
+        my $success = $imap->login;
+        if (not $success) {
+            croak 'Login failed with credentials: ' . $self->user . ':' . $self->password;
+        }
         $imap->select('INBOX');
 
         return $imap;
