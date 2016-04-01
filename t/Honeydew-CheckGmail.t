@@ -16,6 +16,25 @@ describe 'CheckGmail' => sub {
         );
     };
 
+    describe 'credential determination' => sub {
+        my ($config);
+        before each => sub {
+            $config = {
+                gmail => {
+                    account => 'user:password'
+                }
+            };
+        };
+
+        it 'should split the account key of the gmail section' => sub {
+            my $gmail = Honeydew::CheckGmail->new(
+                config => $config
+            );
+            is($gmail->user, 'user');
+            is($gmail->password, 'password');
+        };
+    };
+
     describe 'unread retrieval' => sub {
         my ($unseen_msg_id);
         before each => sub {
@@ -79,8 +98,8 @@ describe 'CheckGmail' => sub {
         };
 
         it 'should reject a very old message' => sub {
-            my $summary = mock();
-            mock_message_internaldate('10-Dec-2015 14:34:44 +0000', $summary, $mockimap);
+            my $too_old = $now - '9999s';
+            mock_message_internaldate($too_old->strftime('%d-%b-%G %H:%M:%S %z'), $summary, $mockimap);
 
             my $is_new = $gmail->is_message_new({ id => '1' });
             ok(! $is_new);

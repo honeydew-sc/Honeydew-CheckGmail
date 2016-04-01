@@ -39,7 +39,10 @@ has user => (
     is => 'lazy',
     default => sub {
         my ($self) = @_;
-        return $self->config->{gmail}->{user};
+        my $account = $self->config->{gmail}->{account};
+        my @parts = split(':', $account);
+        my $user = shift @parts;
+        return $user;
     }
 );
 
@@ -53,7 +56,10 @@ has password => (
     is => 'lazy',
     default => sub {
         my ($self) = @_;
-        return $self->config->{gmail}->{password};
+        my $account = $self->config->{gmail}->{account};
+        my @parts = split(':', $account);
+        my $password = pop @parts;
+        return $password;
     }
 );
 
@@ -63,7 +69,7 @@ Specify a config instance. If not provided, L</user> and L</password>
 will be looked up in this hash like such:
 
     my $config = {
-        gmail => { user => 'user', password => 'password' }
+        gmail => { account => 'user:password' }
     };
     my $gmail = Honeydew::CheckGmail->new(config => $config);
 
