@@ -1,6 +1,7 @@
 Revision history for perl module Honeydew-CheckGmail
 
 {{$NEXT}}
+ - Update config credential extraction to allow for multiple accs
 
 0.02      2016-03-31
  - Add error message for using incorrect credentials
