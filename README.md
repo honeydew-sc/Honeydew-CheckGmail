@@ -6,7 +6,7 @@ Honeydew::CheckGmail - Get and save new emails from Gmail
 
 # VERSION
 
-version 0.02
+version 0.03
 
 # SYNOPSIS
 
@@ -38,7 +38,7 @@ Specify a config instance. If not provided, ["user"](#user) and ["password"](#pa
 will be looked up in this hash like such:
 
     my $config = {
-        gmail => { user => 'user', password => 'password' }
+        gmail => { account => 'user:password' }
     };
     my $gmail = Honeydew::CheckGmail->new(config => $config);
 
